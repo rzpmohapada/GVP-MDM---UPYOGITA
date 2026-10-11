@@ -1,17 +1,1444 @@
 <!DOCTYPE html>
 <html lang="mr">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2316a34a'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>शालेय पोषण आहार (PM POSHAN) - उपयोगिता व धान्य साठा नोंदवही</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="./assets/index-C_i-iAjp.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-C0LyJtbW.css">
-  </head>
-  <body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-brand-500 selection:text-white">
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>शालेय पोषण आहार (PM POSHAN) - उपयोगिता व धान्य साठा नोंदवही</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2316a34a'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+
+  <!-- Google Fonts for crisp Marathi Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN (100% works on GitHub Pages without any build tools) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- SheetJS (xlsx) for direct Excel Download and Upload -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Vue 3 via CDN for seamless, reactive data without compilation -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <style>
+    body {
+      font-family: 'Mukta', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f8fafc;
+      -webkit-font-smoothing: antialiased;
+    }
+    [v-cloak] { display: none !important; }
+    
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    @media print {
+      body { background-color: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      .print-page { page-break-after: always; padding: 0 !important; margin: 0 !important; }
+      table { font-size: 10px !important; }
+      th, td { padding: 2px 4px !important; }
+    }
+  </style>
+</head>
+<body class="text-slate-900 selection:bg-emerald-500 selection:text-white">
+  <div id="app" v-cloak class="min-h-screen flex flex-col">
+
+    <!-- Toast Notification -->
+    <div v-if="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-2xl border text-sm font-bold text-white transition-all duration-300"
+         :class="toast.type === 'error' ? 'bg-red-800 border-red-600' : 'bg-emerald-800 border-emerald-600'">
+      <span>{{ toast.message }}</span>
+    </div>
+
+    <!-- Header & Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs no-print">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3">
+          
+          <!-- Logo & School Profile Trigger -->
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-green-700 flex items-center justify-center text-white shadow-md shadow-emerald-600/20 text-xl font-black">
+              🍚
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-lg font-black text-slate-900 leading-tight">
+                  शालेय पोषण आहार उपयोगिता नोंदवही
+                </h1>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  PM POSHAN
+                </span>
+              </div>
+              <button @click="showSchoolModal = true" class="group flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-700 font-medium transition mt-0.5" title="शाळेची माहिती बदलण्यासाठी येथे क्लिक करा">
+                <span>🏫</span>
+                <span class="font-bold text-slate-700 group-hover:text-emerald-700 underline decoration-dotted">
+                  {{ schoolProfile.schoolName || 'शाळेचे नाव सेट करा' }}
+                </span>
+                <span v-if="schoolProfile.taluka" class="text-slate-400">({{ schoolProfile.taluka }})</span>
+                <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1 rounded">बदला ✎</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Multi-Year Dropdown & Action Buttons -->
+          <div class="flex flex-wrap items-center gap-2">
+            
+            <!-- Multi-Year Selector -->
+            <div class="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200">
+              <span class="text-xs text-slate-500 pl-2">📅</span>
+              <select v-model="activeYear" class="bg-transparent text-sm font-bold text-slate-800 px-2 py-1 outline-none cursor-pointer">
+                <option v-for="yr in availableYears" :key="yr" :value="yr">
+                  वर्ष: {{ yr }}
+                </option>
+              </select>
+              <button @click="openAddYearModal" class="flex items-center gap-1 text-xs font-bold px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-700 rounded-lg border border-slate-200 shadow-2xs transition">
+                + नवीन वर्ष
+              </button>
+            </div>
+
+            <!-- Import Excel -->
+            <label class="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 cursor-pointer transition">
+              <span>📥</span> एक्सेल इम्पोर्ट
+              <input type="file" accept=".xlsx, .xls" @change="handleImportExcel" class="hidden">
+            </label>
+
+            <!-- Print -->
+            <button @click="printPage" class="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 transition">
+              <span>🖨️</span> प्रिंट
+            </button>
+
+            <!-- Excel Download Button -->
+            <button @click="exportToExcel" class="flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white rounded-xl shadow-md shadow-emerald-700/20 transition cursor-pointer">
+              <span>📗</span> Excel डाऊनलोड (.xlsx)
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex space-x-1 sm:space-x-2 border-t border-slate-100 pt-1.5 overflow-x-auto scrollbar-none">
+          <button v-for="tab in navTabs" :key="tab.id" @click="activeTab = tab.id"
+                  class="px-3.5 py-2 text-sm font-bold rounded-t-xl transition-all whitespace-nowrap border-b-2"
+                  :class="activeTab === tab.id ? 'border-emerald-700 text-emerald-800 bg-emerald-50/70' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'">
+            {{ tab.label }}
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: वार्षिक गोषवारा (Master Sheet) -->
+      <!-- ========================================== -->
+      <section v-if="activeTab === 'summary'" class="space-y-6">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xl">📊</span>
+              <h2 class="text-lg font-bold text-slate-900">
+                वार्षिक उपयोगिता गोषवारा व मास्टर तक्ता (Annual Master Sheet)
+              </h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">
+              तुमच्या मूळ एक्सेल रचनेनुसार सर्व महिने आणि वर्षअखेर एकूण प्राप्त, शिजवलेले व शिल्लक आपोआप तयार झाले आहे.
+            </p>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <button @click="printPage" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300">
+              🖨️ प्रिंट / PDF
+            </button>
+            <button @click="exportToExcel" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer">
+              <span>📗</span> एक्सेल डाऊनलोड करा (.xlsx)
+            </button>
+          </div>
+        </div>
+
+        <!-- Master Table View -->
+        <div class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden print-page">
+          <!-- Title on Print -->
+          <div class="text-center py-4 px-6 border-b border-slate-200 bg-emerald-50/30">
+            <h1 class="text-lg sm:text-xl font-black text-slate-900">
+              {{ schoolProfile.schoolName || 'शाळा' }}
+            </h1>
+            <p class="text-sm font-bold text-emerald-900 mt-0.5">
+              प्रधानमंत्री पोषण शक्ती निर्माण योजना - पोषण आहार उपयोगिता {{ activeYear }}
+            </p>
+            <p v-if="schoolProfile.cluster || schoolProfile.taluka" class="text-xs text-slate-500 mt-0.5">
+              केंद्र: {{ schoolProfile.cluster || '-' }} | तालुका: {{ schoolProfile.taluka || '-' }} | जिल्हा: {{ schoolProfile.district || '-' }}
+            </p>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <!-- Months Header Row -->
+                <tr class="bg-emerald-800 text-white font-bold text-center border-b border-emerald-900">
+                  <th class="py-2.5 px-3 border-r border-emerald-700 w-32 sticky left-0 bg-emerald-800 z-10 text-left">
+                    तपशील
+                  </th>
+                  <th class="py-2.5 px-2 border-r border-emerald-700 w-24 bg-emerald-900">
+                    मार्च {{ startYearShort }} अखेर शिल्लक
+                  </th>
+                  <th v-for="m in MONTHS" :key="m.key" colspan="3" class="py-2.5 px-2 border-r border-emerald-700 min-w-[170px]">
+                    {{ m.name }} {{ getMonthYear(m.key) }}
+                  </th>
+                  <th colspan="3" class="py-2.5 px-2 bg-emerald-950 font-black min-w-[180px]">
+                    एकूण (Total)
+                  </th>
+                </tr>
+
+                <!-- पटसंख्या Row -->
+                <tr class="bg-slate-50 border-b border-slate-200 font-bold text-slate-800">
+                  <td class="py-2 px-3 border-r border-slate-200 sticky left-0 bg-slate-50 z-10 text-left text-blue-900">
+                    पटसंख्या
+                  </td>
+                  <td class="py-2 px-2 border-r border-slate-200 text-center bg-slate-100/60">-</td>
+                  <td v-for="m in MONTHS" :key="m.key" colspan="3" class="py-2 px-2 border-r border-slate-200 text-center text-blue-800">
+                    {{ currentYearData.metrics[m.key]?.roll || '-' }}
+                  </td>
+                  <td colspan="3" class="py-2 px-2 text-center text-blue-900 font-black bg-blue-50/50">
+                    {{ currentYearData.metrics['mar']?.roll || currentYearData.metrics['apr']?.roll || '-' }}
+                  </td>
+                </tr>
+
+                <!-- कार्यदिवस Row -->
+                <tr class="bg-slate-50/70 border-b border-slate-200 font-bold text-slate-800">
+                  <td class="py-2 px-3 border-r border-slate-200 sticky left-0 bg-slate-50 z-10 text-left text-slate-700">
+                    कार्यदिवस
+                  </td>
+                  <td class="py-2 px-2 border-r border-slate-200 text-center bg-slate-100/60">-</td>
+                  <td v-for="m in MONTHS" :key="m.key" colspan="3" class="py-2 px-2 border-r border-slate-200 text-center">
+                    {{ currentYearData.metrics[m.key]?.workingDays || 0 }}
+                  </td>
+                  <td colspan="3" class="py-2 px-2 text-center font-black text-slate-900 bg-slate-100">
+                    {{ metricsSummary.totalWorkingDays }} दिवस
+                  </td>
+                </tr>
+
+                <!-- ताटांची संख्या Row -->
+                <tr class="bg-slate-50 border-b border-slate-200 font-bold text-slate-800">
+                  <td class="py-2 px-3 border-r border-slate-200 sticky left-0 bg-slate-50 z-10 text-left text-emerald-800">
+                    ताटांची संख्या
+                  </td>
+                  <td class="py-2 px-2 border-r border-slate-200 text-center bg-slate-100/60">-</td>
+                  <td v-for="m in MONTHS" :key="m.key" colspan="3" class="py-2 px-2 border-r border-slate-200 text-center text-emerald-800">
+                    {{ currentYearData.metrics[m.key]?.mealsServed || 0 }}
+                  </td>
+                  <td colspan="3" class="py-2 px-2 text-center font-black text-emerald-900 bg-emerald-50">
+                    {{ metricsSummary.totalMealsServed }} ताटे
+                  </td>
+                </tr>
+
+                <!-- Subheaders (प्राप्त, शिजवलेला, शिल्लक) -->
+                <tr class="bg-slate-200/80 text-[11px] font-bold text-slate-700 border-b border-slate-300 text-center">
+                  <th class="py-2 px-3 border-r border-slate-300 sticky left-0 bg-slate-200 z-10 text-left">
+                    अ.क्र. व साहित्य
+                  </th>
+                  <th class="py-2 px-2 border-r border-slate-300 bg-slate-300/80">
+                    सुरुवात शिल्लक
+                  </th>
+                  <template v-for="m in MONTHS" :key="m.key">
+                    <th class="py-1.5 px-1 border-r border-slate-300 text-blue-900">प्राप्त</th>
+                    <th class="py-1.5 px-1 border-r border-slate-300 text-emerald-900">शिजवलेला</th>
+                    <th class="py-1.5 px-1 border-r border-slate-300 text-purple-900">शिल्लक</th>
+                  </template>
+                  <th class="py-1.5 px-1 border-r border-slate-300 text-blue-950 font-black bg-blue-100/60">प्राप्त</th>
+                  <th class="py-1.5 px-1 border-r border-slate-300 text-emerald-950 font-black bg-emerald-100/60">शिजवलेला</th>
+                  <th class="py-1.5 px-1 text-purple-950 font-black bg-purple-100/60">शिल्लक</th>
+                </tr>
+              </thead>
+
+              <!-- Foodgrain Items Body -->
+              <tbody class="divide-y divide-slate-200">
+                <tr v-for="(item, idx) in items" :key="item.id" class="hover:bg-amber-50/40 text-right font-medium">
+                  <td class="py-1.5 px-3 border-r border-slate-200 text-left font-bold text-slate-800 sticky left-0 bg-white z-10 whitespace-nowrap">
+                    <span class="text-slate-400 mr-1.5 font-normal">{{ idx + 1 }}.</span>
+                    {{ item.name }}
+                  </td>
+                  <!-- Opening Stock -->
+                  <td class="py-1.5 px-2 border-r border-slate-200 font-bold text-slate-700 bg-slate-50/60">
+                    {{ getItemChain(item.id).initialOpening }}
+                  </td>
+
+                  <!-- 11 Months -->
+                  <template v-for="m in MONTHS" :key="m.key">
+                    <td class="py-1.5 px-1 border-r border-slate-100 text-blue-900 font-medium">
+                      {{ getItemChain(item.id).months[m.key].received }}
+                    </td>
+                    <td class="py-1.5 px-1 border-r border-slate-100 text-emerald-900 font-bold bg-emerald-50/30">
+                      {{ getItemChain(item.id).months[m.key].cooked }}
+                    </td>
+                    <td class="py-1.5 px-1 border-r border-slate-200 text-purple-900 font-medium">
+                      {{ getItemChain(item.id).months[m.key].closing }}
+                    </td>
+                  </template>
+
+                  <!-- Totals -->
+                  <td class="py-1.5 px-1 border-r border-slate-200 text-blue-950 font-black bg-blue-50/80">
+                    {{ getItemChain(item.id).totalReceived }}
+                  </td>
+                  <td class="py-1.5 px-1 border-r border-slate-200 text-emerald-950 font-black bg-emerald-100/80">
+                    {{ getItemChain(item.id).totalCooked }}
+                  </td>
+                  <td class="py-1.5 px-1 text-purple-950 font-black bg-purple-100/80">
+                    {{ getItemChain(item.id).finalClosing }}
+                  </td>
+                </tr>
+
+                <!-- Fuel Expense Row -->
+                <tr class="bg-amber-50/70 border-t-2 border-slate-300 font-bold text-right text-slate-800">
+                  <td class="py-2 px-3 border-r border-slate-200 text-left font-black text-amber-950 sticky left-0 bg-amber-50/90 z-10">
+                    इंधनखर्च (@ ₹{{ schoolProfile.fuelRate || 2.59 }})
+                  </td>
+                  <td class="py-2 px-2 border-r border-slate-200 text-center">-</td>
+                  <td v-for="m in MONTHS" :key="m.key" colspan="3" class="py-2 px-2 border-r border-slate-200 text-center font-bold text-amber-900">
+                    ₹ {{ formatNum(getFuelCost(m.key)) }}
+                  </td>
+                  <td colspan="3" class="py-2 px-2 text-center font-black text-amber-950 bg-amber-100">
+                    ₹ {{ formatNum(metricsSummary.totalFuelCost) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Official Signatures in Print -->
+          <div class="p-6 border-t border-slate-200 bg-slate-50 flex justify-between items-end text-xs font-bold text-slate-700">
+            <div class="text-center">
+              <div class="h-12"></div>
+              <p class="border-t border-slate-400 pt-1 w-44">शालेय पोषण आहार मदतनीस</p>
+            </div>
+            <div class="text-center">
+              <div class="h-12"></div>
+              <p class="border-t border-slate-400 pt-1 w-44">अध्यक्ष - शाळा व्यवस्थापन समिती</p>
+            </div>
+            <div class="text-center">
+              <div class="h-12"></div>
+              <p class="border-t border-slate-400 pt-1 w-44">मुख्याध्यापक / स्वाक्षरी व शिक्का</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: महिनानिहाय धान्य नोंद (Monthly Entry) -->
+      <!-- ========================================== -->
+      <section v-if="activeTab === 'monthly'" class="space-y-6">
+        <!-- Month Selector Bar -->
+        <div class="bg-white p-2 rounded-2xl border border-slate-200 shadow-2xs overflow-x-auto scrollbar-none">
+          <div class="flex items-center space-x-2 min-w-max">
+            <button v-for="m in MONTHS" :key="m.key" @click="selectedMonth = m.key"
+                    class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5"
+                    :class="selectedMonth === m.key ? 'bg-emerald-700 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'">
+              {{ m.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Month Banner -->
+        <div class="bg-gradient-to-r from-emerald-700 to-teal-800 text-white rounded-2xl p-5 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white/20 text-emerald-100">
+              वर्ष: {{ activeYear }}
+            </span>
+            <h2 class="text-2xl font-black mt-1">
+              {{ getMonthName(selectedMonth) }} महिन्याची धान्य नोंद
+            </h2>
+            <p class="text-xs text-emerald-100 mt-1">
+              फक्त <strong>'प्राप्त'</strong> आणि <strong>'अखेर शिल्लक'</strong> भरा. <strong>'शिजवलेले'</strong> धान्य आपोआप कॅल्क्युलेट होईल.
+            </p>
+          </div>
+
+          <!-- Attendance Badges -->
+          <div class="flex items-center gap-4 bg-white/10 px-4 py-2.5 rounded-xl text-xs">
+            <div>
+              <span class="block text-emerald-200 text-[10px] uppercase font-bold">पटसंख्या</span>
+              <span class="font-extrabold text-base">{{ currentYearData.metrics[selectedMonth]?.roll || '-' }}</span>
+            </div>
+            <div class="w-px h-7 bg-white/20"></div>
+            <div>
+              <span class="block text-emerald-200 text-[10px] uppercase font-bold">कार्यदिवस</span>
+              <span class="font-extrabold text-base">{{ currentYearData.metrics[selectedMonth]?.workingDays || '-' }}</span>
+            </div>
+            <div class="w-px h-7 bg-white/20"></div>
+            <div>
+              <span class="block text-emerald-200 text-[10px] uppercase font-bold">ताट संख्या</span>
+              <span class="font-extrabold text-base text-emerald-200">{{ currentYearData.metrics[selectedMonth]?.mealsServed || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Data Entry Table -->
+        <div class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-slate-100 text-xs font-bold text-slate-700 border-b border-slate-200">
+                  <th class="py-3 px-3 w-12 text-center">अ. क्र.</th>
+                  <th class="py-3 px-4 w-44">धान्य तपशील</th>
+                  <th class="py-3 px-3 text-center w-20">एकक</th>
+                  <th class="py-3 px-4 text-center bg-slate-50 border-x border-slate-200 w-36">
+                    <span class="block font-bold">मागील शिल्लक</span>
+                    <span class="text-[10px] text-slate-400 font-medium">(Auto-Opening)</span>
+                  </th>
+                  <th class="py-3 px-4 text-center bg-blue-50/60 w-36">
+                    <span class="block text-blue-900 font-bold">प्राप्त धान्य</span>
+                    <span class="text-[10px] text-blue-600 font-medium">(आवक वजन)</span>
+                  </th>
+                  <th class="py-3 px-4 text-center bg-purple-50/60 w-36">
+                    <span class="block text-purple-900 font-bold">अखेर शिल्लक</span>
+                    <span class="text-[10px] text-purple-600 font-medium">(महिनाअखेर साठा)</span>
+                  </th>
+                  <th class="py-3 px-4 text-center bg-emerald-50 border-l border-emerald-200 w-40">
+                    <span class="block text-emerald-950 font-black">शिजवलेले धान्य</span>
+                    <span class="text-[10px] text-emerald-700 font-semibold">(Auto-Calculated)</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr v-for="(item, idx) in items" :key="item.id" class="hover:bg-slate-50">
+                  <td class="py-2.5 px-3 text-center text-slate-400 font-medium">
+                    {{ idx + 1 }}
+                  </td>
+                  <td class="py-2.5 px-4 font-bold text-slate-800">
+                    {{ item.name }}
+                  </td>
+                  <td class="py-2.5 px-3 text-center text-xs font-semibold text-slate-500">
+                    {{ item.unit || 'कि.ग्रॅ.' }}
+                  </td>
+
+                  <!-- मागील शिल्लक (Auto) -->
+                  <td class="py-2.5 px-4 text-right bg-slate-50/60 border-x border-slate-200">
+                    <span class="font-bold text-slate-700 px-2 py-1 rounded bg-slate-200/70 inline-block w-24 text-right">
+                      {{ getItemMonthOpening(item.id, selectedMonth) }}
+                    </span>
+                  </td>
+
+                  <!-- प्राप्त (Input) -->
+                  <td class="py-2.5 px-4 text-center bg-blue-50/20">
+                    <input type="number" step="0.001"
+                           v-model.number="getEntry(selectedMonth, item.id).received"
+                           placeholder="0.00"
+                           class="w-28 px-2.5 py-1.5 text-right font-bold text-blue-900 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                  </td>
+
+                  <!-- अखेर शिल्लक (Input) -->
+                  <td class="py-2.5 px-4 text-center bg-purple-50/20">
+                    <input type="number" step="0.001"
+                           v-model.number="getEntry(selectedMonth, item.id).closing"
+                           placeholder="0.00"
+                           class="w-28 px-2.5 py-1.5 text-right font-bold text-purple-900 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 bg-white text-sm">
+                  </td>
+
+                  <!-- शिजवलेले (Auto Badge) -->
+                  <td class="py-2.5 px-4 text-right bg-emerald-50/40 border-l border-emerald-200">
+                    <span class="font-black px-3 py-1 rounded-lg text-sm inline-block text-right"
+                          :class="getCookedVal(item.id, selectedMonth) < 0 ? 'bg-red-100 text-red-700' : (getCookedVal(item.id, selectedMonth) > 0 ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-slate-200 text-slate-600')">
+                      {{ getCookedVal(item.id, selectedMonth) }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Bottom Nav -->
+          <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+            <button @click="prevMonth" :disabled="isFirstMonth"
+                    class="px-4 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-700 disabled:opacity-40">
+              ← मागील महिना
+            </button>
+            <span class="text-xs text-slate-500">
+              * सूत्र: <strong>शिजवलेले = (मागील शिल्लक + प्राप्त) - अखेर शिल्लक</strong>
+            </span>
+            <button @click="nextMonth"
+                    class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-xs">
+              {{ isLastMonth ? 'वार्षिक गोषवारा पहा 📊' : 'पुढील महिना →' }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: पटसंख्या, दिवस व ताट संख्या -->
+      <!-- ========================================== -->
+      <section v-if="activeTab === 'metrics'" class="space-y-6">
+        <!-- Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
+            <div class="text-3xl">📅</div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500">एकूण वार्षिक कार्यदिवस</p>
+              <p class="text-2xl font-black text-slate-800">{{ metricsSummary.totalWorkingDays }} दिवस</p>
+            </div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
+            <div class="text-3xl">🍽️</div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500">एकूण वाटप केलेली ताटे</p>
+              <p class="text-2xl font-black text-emerald-800">{{ metricsSummary.totalMealsServed }} ताटे</p>
+            </div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
+            <div class="text-3xl">💰</div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500">एकूण इंधन खर्च (@ ₹{{ schoolProfile.fuelRate || 2.59 }})</p>
+              <p class="text-2xl font-black text-amber-900">₹ {{ formatNum(metricsSummary.totalFuelCost) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70">
+            <h2 class="text-base font-bold text-slate-900">
+              महिनानिहाय पटसंख्या, कार्यदिवस व ताटांची संख्या
+            </h2>
+            <p class="text-xs text-slate-500">
+              प्रत्येक महिन्याची पटसंख्या, प्रत्यक्ष भरलेले कार्यदिवस आणि लाभार्थी ताटांची संख्या भरा.
+            </p>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-slate-100 text-xs font-bold text-slate-700 border-b border-slate-200">
+                  <th class="py-3 px-4 w-12 text-center">अ. क्र.</th>
+                  <th class="py-3 px-4 w-36">महिना</th>
+                  <th class="py-3 px-4 text-center">पटसंख्या (Roll)</th>
+                  <th class="py-3 px-4 text-center">कार्यदिवस (Working Days)</th>
+                  <th class="py-3 px-4 text-center">ताटांची संख्या (Meals Served)</th>
+                  <th class="py-3 px-4 text-right">मासिक इंधन खर्च (₹)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr v-for="(m, idx) in MONTHS" :key="m.key" class="hover:bg-slate-50">
+                  <td class="py-2.5 px-4 text-center text-slate-400 font-medium">{{ idx + 1 }}</td>
+                  <td class="py-2.5 px-4 font-bold text-slate-800">{{ m.name }}</td>
+                  <td class="py-2.5 px-4 text-center">
+                    <input type="number" v-model.number="getMetric(m.key).roll" placeholder="0"
+                           class="w-24 px-2 py-1.5 text-center font-bold border border-slate-300 rounded-lg text-sm">
+                  </td>
+                  <td class="py-2.5 px-4 text-center">
+                    <input type="number" v-model.number="getMetric(m.key).workingDays" placeholder="0"
+                           class="w-24 px-2 py-1.5 text-center font-bold border border-slate-300 rounded-lg text-sm">
+                  </td>
+                  <td class="py-2.5 px-4 text-center">
+                    <input type="number" v-model.number="getMetric(m.key).mealsServed" placeholder="0"
+                           class="w-28 px-2 py-1.5 text-center font-bold text-emerald-800 border border-emerald-300 bg-emerald-50/40 rounded-lg text-sm">
+                  </td>
+                  <td class="py-2.5 px-4 text-right font-bold text-slate-700">
+                    ₹ {{ formatNum(getFuelCost(m.key)) }}
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-300">
+                  <td colspan="3" class="py-3 px-4 text-right text-xs uppercase">वार्षिक एकूण बेरीज:</td>
+                  <td class="py-3 px-4 text-center text-blue-900">{{ metricsSummary.totalWorkingDays }} दिवस</td>
+                  <td class="py-3 px-4 text-center text-emerald-900">{{ metricsSummary.totalMealsServed }} ताटे</td>
+                  <td class="py-3 px-4 text-right text-amber-900">₹ {{ formatNum(metricsSummary.totalFuelCost) }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: १ एप्रिल शिल्लक (Opening Stock) -->
+      <!-- ========================================== -->
+      <section v-if="activeTab === 'opening'" class="space-y-6">
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-5 shadow-2xs">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">📦</span>
+            <div>
+              <h2 class="text-base font-bold text-emerald-950">
+                १ एप्रिल (किंवा ३१ मार्च अखेर) सुरुवातीची शिल्लक नोंद - वर्ष {{ activeYear }}
+              </h2>
+              <p class="text-xs text-emerald-800 mt-1">
+                शैक्षणिक वर्षाच्या सुरुवातीला (१ एप्रिल रोजी) शाळेकडे शिल्लक असलेले धान्य येथे भरा. ही शिल्लक एप्रिल महिन्याची सुरुवातीची शिल्लक बनेल.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-100 text-xs font-bold text-slate-700 border-b border-slate-200">
+                <th class="py-3 px-4 w-16 text-center">अ. क्र.</th>
+                <th class="py-3 px-4">धान्य तपशील</th>
+                <th class="py-3 px-4 w-28 text-center">एकक</th>
+                <th class="py-3 px-4 w-48 text-right">१ एप्रिल शिल्लक</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr v-for="(item, idx) in items" :key="item.id" class="hover:bg-slate-50">
+                <td class="py-2.5 px-4 text-center text-slate-400 font-medium">{{ idx + 1 }}</td>
+                <td class="py-2.5 px-4 font-bold text-slate-800">{{ item.name }}</td>
+                <td class="py-2.5 px-4 text-center text-xs font-semibold text-slate-500">{{ item.unit || 'कि.ग्रॅ.' }}</td>
+                <td class="py-2.5 px-4 text-right">
+                  <div class="inline-flex items-center gap-2">
+                    <input type="number" step="0.001"
+                           v-model.number="currentYearData.openingBalance[item.id]"
+                           placeholder="0.00"
+                           class="w-32 px-3 py-1.5 text-right font-bold text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                    <span class="text-xs text-slate-400 font-semibold w-8 text-left">{{ item.unit === 'लिटर' ? 'लि.' : 'कि.ग्रा.' }}</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 5: धान्य सूची व्यवस्थापन (Manage Items) -->
+      <!-- ========================================== -->
+      <section v-if="activeTab === 'items'" class="space-y-6">
+        <!-- Add Item Card -->
+        <div class="bg-white rounded-2xl shadow-xs border border-slate-200 p-5">
+          <h2 class="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <span>➕</span> नवीन धान्य किंवा साहित्य जोडा
+          </h2>
+          <form @submit.prevent="addItem" class="flex flex-wrap items-center gap-3">
+            <input type="text" required v-model="newItemName" placeholder="धान्याचे नाव (उदा. गुळ, खोबरे...)"
+                   class="flex-1 min-w-[240px] px-3.5 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-medium">
+            <select v-model="newItemUnit" class="px-3.5 py-2 border border-slate-300 rounded-xl bg-white font-medium">
+              <option value="कि.ग्रॅ.">कि.ग्रॅ. (kg)</option>
+              <option value="लिटर">लिटर (L)</option>
+              <option value="ग्रॅम">ग्रॅम (g)</option>
+              <option value="नग">नग (Nos)</option>
+            </select>
+            <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-xs">
+              जोडा
+            </button>
+          </form>
+        </div>
+
+        <!-- Items Table -->
+        <div class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-900">उपलब्ध धान्य यादी ({{ items.length }} घटक)</h3>
+            <button @click="resetDefaultItems" class="text-xs font-semibold px-3 py-1.5 bg-white border border-slate-300 rounded-lg hover:bg-slate-100">
+              🔄 मूळ १७ धान्ये पूर्ववत करा
+            </button>
+          </div>
+          <div class="divide-y divide-slate-100">
+            <div v-for="(item, idx) in items" :key="item.id" class="px-6 py-3 flex items-center justify-between hover:bg-slate-50">
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-slate-400 w-6">{{ idx + 1 }}.</span>
+                <span class="font-bold text-slate-800 text-sm">{{ item.name }}</span>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500">{{ item.unit || 'कि.ग्रॅ.' }}</span>
+              </div>
+              <button @click="deleteItem(item.id)" class="text-xs font-bold text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50">
+                काढून टाका 🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modal: School Settings -->
+    <div v-if="showSchoolModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+        <div class="flex items-center justify-between px-6 py-4 bg-emerald-700 text-white">
+          <h2 class="text-lg font-bold flex items-center gap-2">🏫 शाळेची माहिती व सेटिंग्ज</h2>
+          <button @click="showSchoolModal = false" class="text-white/80 hover:text-white text-xl font-bold">✕</button>
+        </div>
+        <form @submit.prevent="saveSchoolProfile" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-1">शाळेचे संपूर्ण नाव *</label>
+            <input type="text" required v-model="schoolProfile.schoolName" placeholder="उदा. रा जि प शाळा मोहपाडा"
+                   class="w-full px-3 py-2 border border-slate-300 rounded-lg font-bold">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">केंद्र (Cluster)</label>
+              <input type="text" v-model="schoolProfile.cluster" placeholder="उदा. मोहपाडा"
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">तालुका</label>
+              <input type="text" v-model="schoolProfile.taluka" placeholder="उदा. खालापूर"
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">जिल्हा</label>
+              <input type="text" v-model="schoolProfile.district" placeholder="उदा. रायगड"
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">UDISE कोड</label>
+              <input type="text" v-model="schoolProfile.udiseCode" placeholder="उदा. 2724..."
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+            </div>
+          </div>
+          <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+            <label class="block text-xs font-bold text-emerald-900 mb-1">प्रति लाभार्थी इंधन खर्च दर (₹)</label>
+            <input type="number" step="0.01" required v-model.number="schoolProfile.fuelRate"
+                   class="w-28 px-3 py-1.5 border border-emerald-300 rounded-lg font-black text-emerald-900 bg-white">
+            <span class="text-xs text-emerald-700 ml-2">(डीफॉल्ट ₹२.५९ प्रति ताट)</span>
+          </div>
+          <div class="flex justify-end gap-2 pt-3 border-t">
+            <button type="button" @click="showSchoolModal = false" class="px-4 py-2 border rounded-lg text-slate-700 font-semibold">रद्द करा</button>
+            <button type="submit" class="px-5 py-2 bg-emerald-700 text-white font-bold rounded-lg">जतन करा</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Add Academic Year -->
+    <div v-if="showAddYearModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+        <div class="flex items-center justify-between px-6 py-4 bg-emerald-700 text-white">
+          <h2 class="text-lg font-bold flex items-center gap-2">📅 नवीन शैक्षणिक वर्ष जोडा</h2>
+          <button @click="showAddYearModal = false" class="text-white/80 hover:text-white text-xl font-bold">✕</button>
+        </div>
+        <form @submit.prevent="confirmAddYear" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-1">शैक्षणिक वर्ष *</label>
+            <input type="text" required v-model="newYearInput" placeholder="उदा. 2026-27"
+                   class="w-full px-3 py-2 border border-slate-300 rounded-lg font-black text-lg">
+          </div>
+          <label class="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" v-model="carryForwardBalance" class="mt-1 w-4 h-4 text-emerald-600 rounded">
+            <span class="text-xs text-slate-700 leading-relaxed">
+              <strong class="block text-emerald-900 font-bold text-sm mb-0.5">मागील वर्षाची शिल्लक पुढे आणा</strong>
+              चालू वर्षाची अंतिम ३१ मार्च अखेर शिल्लक नवीन वर्षाच्या १ एप्रिल रोजी आपोआप घेतली जाईल.
+            </span>
+          </label>
+          <div class="flex justify-end gap-2 pt-3 border-t">
+            <button type="button" @click="showAddYearModal = false" class="px-4 py-2 border rounded-lg text-slate-700 font-semibold">रद्द करा</button>
+            <button type="submit" class="px-5 py-2 bg-emerald-700 text-white font-bold rounded-lg">वर्ष जोडा →</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const { createApp, ref, computed, watch, onMounted } = Vue;
+
+    // 17 Standard Maharashtra PM POSHAN Items
+    const DEFAULT_ITEMS = [
+      { id: 'rice', name: 'तांदूळ', unit: 'कि.ग्रॅ.' },
+      { id: 'moong_dal', name: 'मुगडाळ', unit: 'कि.ग्रॅ.' },
+      { id: 'tur_dal', name: 'तुरडाळ', unit: 'कि.ग्रॅ.' },
+      { id: 'masoor_dal', name: 'मसूरडाळ', unit: 'कि.ग्रॅ.' },
+      { id: 'matki', name: 'मटकी', unit: 'कि.ग्रॅ.' },
+      { id: 'moong', name: 'मुग', unit: 'कि.ग्रॅ.' },
+      { id: 'chawli', name: 'चवळी', unit: 'कि.ग्रॅ.' },
+      { id: 'harbhara', name: 'हरभरा', unit: 'कि.ग्रॅ.' },
+      { id: 'vatana', name: 'वाटणा', unit: 'कि.ग्रॅ.' },
+      { id: 'jire', name: 'जिरे', unit: 'कि.ग्रॅ.' },
+      { id: 'mohari', name: 'मोहरी', unit: 'कि.ग्रॅ.' },
+      { id: 'halad', name: 'हळद', unit: 'कि.ग्रॅ.' },
+      { id: 'mirchi', name: 'मिरची पावडर', unit: 'कि.ग्रॅ.' },
+      { id: 'oil', name: 'तेल', unit: 'लिटर' },
+      { id: 'salt', name: 'मीठ', unit: 'कि.ग्रॅ.' },
+      { id: 'onion_garlic', name: 'कांदा लसून', unit: 'कि.ग्रॅ.' },
+      { id: 'soyavadi', name: 'सोयावडी', unit: 'कि.ग्रॅ.' }
+    ];
+
+    const MONTHS = [
+      { key: 'apr', name: 'एप्रिल' },
+      { key: 'jun', name: 'जून' },
+      { key: 'jul', name: 'जुलै' },
+      { key: 'aug', name: 'ऑगस्ट' },
+      { key: 'sep', name: 'सप्टेंबर' },
+      { key: 'oct', name: 'ऑक्टोबर' },
+      { key: 'nov', name: 'नोव्हेंबर' },
+      { key: 'dec', name: 'डिसेंबर' },
+      { key: 'jan', name: 'जानेवारी' },
+      { key: 'feb', name: 'फेब्रुवारी' },
+      { key: 'mar', name: 'मार्च' }
+    ];
+
+    // Preloaded Actual Data from user's school spreadsheet (2025-26)
+    const DEMO_DATA_2025_26 = {
+      openingBalance: {
+        rice: 33.4, moong_dal: -0.3, tur_dal: 0.0, masoor_dal: 4.4, matki: 4.96,
+        moong: 0.0, chawli: -1.48, harbhara: 0.57, vatana: 1.31, jire: 1.788,
+        mohari: 3.28, halad: 2.251, mirchi: 1.1974, oil: 2.0, salt: 0.52,
+        onion_garlic: 4.433, soyavadi: 0.0
+      },
+      metrics: {
+        apr: { roll: 15, workingDays: 23, mealsServed: 340 },
+        jun: { roll: 14, workingDays: 13, mealsServed: 161 },
+        jul: { roll: 14, workingDays: 27, mealsServed: 259 },
+        aug: { roll: 14, workingDays: 17, mealsServed: 201 },
+        sep: { roll: 14, workingDays: 19, mealsServed: 219 },
+        oct: { roll: 15, workingDays: 13, mealsServed: 173 },
+        nov: { roll: 15, workingDays: 24, mealsServed: 299 },
+        dec: { roll: 15, workingDays: 25, mealsServed: 349 },
+        jan: { roll: 15, workingDays: 21, mealsServed: 294 },
+        feb: { roll: 15, workingDays: 22, mealsServed: 308 },
+        mar: { roll: 15, workingDays: 20, mealsServed: 280 }
+      },
+      entries: {
+        apr: {
+          rice: { received: 40, closing: 39.4 }, moong_dal: { received: 4, closing: 2.2 }, tur_dal: { received: 0, closing: 0 },
+          masoor_dal: { received: 4, closing: 6.64 }, matki: { received: 3, closing: 7.36 }, moong: { received: 0, closing: 0 },
+          chawli: { received: 3, closing: 0.62 }, harbhara: { received: 0, closing: 0.29 }, vatana: { received: 2, closing: 1.89 },
+          jire: { received: 0, closing: 1.448 }, mohari: { received: 0, closing: 2.94 }, halad: { received: 0, closing: 1.911 },
+          mirchi: { received: 0, closing: 0.517 }, oil: { received: 6, closing: 6.3 }, salt: { received: 2, closing: 1.84 },
+          onion_garlic: { received: 0, closing: 3.753 }, soyavadi: { received: 0, closing: 0 }
+        },
+        jun: {
+          rice: { received: 0, closing: 23.3 }, moong_dal: { received: 0, closing: 0.96 }, tur_dal: { received: 0, closing: 0 },
+          masoor_dal: { received: 0, closing: 5.9 }, matki: { received: 0, closing: 6.64 }, moong: { received: 0, closing: 0 },
+          chawli: { received: 0, closing: 0.62 }, harbhara: { received: 0, closing: 0.29 }, vatana: { received: 0, closing: 1.37 },
+          jire: { received: 0, closing: 1.432 }, mohari: { received: 0, closing: 2.908 }, halad: { received: 0, closing: 1.879 },
+          mirchi: { received: 0, closing: 0.437 }, oil: { received: 0, closing: 5.495 }, salt: { received: 0, closing: 1.8 },
+          onion_garlic: { received: 0, closing: 3.672 }, soyavadi: { received: 0, closing: 0 }
+        },
+        jul: {
+          rice: { received: 50, closing: 46.4 }, moong_dal: { received: 3, closing: 3.66 }, tur_dal: { received: 5, closing: 4.54 },
+          masoor_dal: { received: 0, closing: 4.1 }, matki: { received: 0, closing: 5.82 }, moong: { received: 5, closing: 5.0 },
+          chawli: { received: 5, closing: 5.12 }, harbhara: { received: 0, closing: 0.29 }, vatana: { received: 3, closing: 3.15 },
+          jire: { received: 0, closing: 1.407 }, mohari: { received: 0, closing: 2.858 }, halad: { received: 0, closing: 1.829 },
+          mirchi: { received: 1, closing: 1.424 }, oil: { received: 0, closing: 4.265 }, salt: { received: 0, closing: 1.75 },
+          onion_garlic: { received: 0, closing: 3.025 }, soyavadi: { received: 2, closing: 1.04 }
+        },
+        aug: {
+          rice: { received: 0, closing: 26.3 }, moong_dal: { received: 0, closing: 3.0 }, tur_dal: { received: 0, closing: 4.06 },
+          masoor_dal: { received: 0, closing: 3.62 }, matki: { received: 0, closing: 1.38 }, moong: { received: 0, closing: 4.52 },
+          chawli: { received: 0, closing: 4.36 }, harbhara: { received: 0, closing: 0.29 }, vatana: { received: 0, closing: 2.43 },
+          jire: { received: 0, closing: 1.386 }, mohari: { received: 0, closing: 2.818 }, halad: { received: 0, closing: 1.789 },
+          mirchi: { received: 0, closing: 1.414 }, oil: { received: 0, closing: 3.265 }, salt: { received: 0, closing: 1.71 },
+          onion_garlic: { received: 0, closing: 3.015 }, soyavadi: { received: 0, closing: 1.04 }
+        },
+        sep: {
+          rice: { received: 50, closing: 54.4 }, moong_dal: { received: 5, closing: 7.32 }, tur_dal: { received: 3, closing: 6.66 },
+          masoor_dal: { received: 2, closing: 3.18 }, matki: { received: 0, closing: 4.92 }, moong: { received: 0, closing: 4.32 },
+          chawli: { received: 3, closing: 6.66 }, harbhara: { received: 2, closing: 2.09 }, vatana: { received: 0, closing: 1.78 },
+          jire: { received: 0, closing: 1.365 }, mohari: { received: 0, closing: 2.381 }, halad: { received: 0, closing: 1.352 },
+          mirchi: { received: 1, closing: 2.304 }, oil: { received: 3, closing: 5.17 }, salt: { received: 1, closing: 2.686 },
+          onion_garlic: { received: 1, closing: 2.632 }, soyavadi: { received: 2, closing: 2.22 }
+        },
+        oct: {
+          rice: { received: 0, closing: 37.1 }, moong_dal: { received: 0, closing: 6.78 }, tur_dal: { received: 0, closing: 6.38 },
+          masoor_dal: { received: 0, closing: 2.72 }, matki: { received: 0, closing: 4.08 }, moong: { received: 0, closing: 4.04 },
+          chawli: { received: 0, closing: 6.34 }, harbhara: { received: 0, closing: 1.57 }, vatana: { received: 0, closing: 1.78 },
+          jire: { received: 0, closing: 1.347 }, mohari: { received: 0, closing: 2.348 }, halad: { received: 0, closing: 1.317 },
+          mirchi: { received: 0, closing: 2.218 }, oil: { received: 0, closing: 4.305 }, salt: { received: 0, closing: 2.643 },
+          onion_garlic: { received: 0, closing: 2.597 }, soyavadi: { received: 0, closing: 1.96 }
+        },
+        nov: {
+          rice: { received: 50, closing: 57.2 }, moong_dal: { received: 0, closing: 5.74 }, tur_dal: { received: 0, closing: 5.9 },
+          masoor_dal: { received: 0, closing: 1.54 }, matki: { received: 0, closing: 3.8 }, moong: { received: 0, closing: 3.76 },
+          chawli: { received: 0, closing: 5.04 }, harbhara: { received: 0, closing: 1.35 }, vatana: { received: 0, closing: 1.56 },
+          jire: { received: 0, closing: 1.317 }, mohari: { received: 0, closing: 2.286 }, halad: { received: 0, closing: 1.257 },
+          mirchi: { received: 0, closing: 2.068 }, oil: { received: 0, closing: 2.81 }, salt: { received: 0, closing: 2.568 },
+          onion_garlic: { received: 0, closing: 2.447 }, soyavadi: { received: 0, closing: 1.24 }
+        },
+        dec: {
+          rice: { received: 100, closing: 122.3 }, moong_dal: { received: 0, closing: 4.62 }, tur_dal: { received: 0, closing: 4.5 },
+          masoor_dal: { received: 0, closing: 0.7 }, matki: { received: 0, closing: 3.24 }, moong: { received: 0, closing: 3.48 },
+          chawli: { received: 0, closing: 4.22 }, harbhara: { received: 0, closing: 0.79 }, vatana: { received: 0, closing: 1.0 },
+          jire: { received: 0, closing: 1.247 }, mohari: { received: 0, closing: 2.269 }, halad: { received: 0, closing: 1.187 },
+          mirchi: { received: 0, closing: 1.893 }, oil: { received: 2, closing: 3.065 }, salt: { received: 0, closing: 2.481 },
+          onion_garlic: { received: 0, closing: 2.272 }, soyavadi: { received: 0, closing: 0.92 }
+        },
+        jan: {
+          rice: { received: 0, closing: 92.9 }, moong_dal: { received: 0, closing: 3.78 }, tur_dal: { received: 0, closing: 3.66 },
+          masoor_dal: { received: 0, closing: 0.14 }, matki: { received: 0, closing: 0.0 }, moong: { received: 0, closing: 3.2 },
+          chawli: { received: 0, closing: 3.38 }, harbhara: { received: 0, closing: 0.23 }, vatana: { received: 0, closing: 0.44 },
+          jire: { received: 0, closing: 1.218 }, mohari: { received: 0, closing: 2.21 }, halad: { received: 0, closing: 1.128 },
+          mirchi: { received: 0, closing: 1.746 }, oil: { received: 0, closing: 1.529 }, salt: { received: 0, closing: 2.408 },
+          onion_garlic: { received: 0, closing: 2.125 }, soyavadi: { received: 0, closing: 0.57 }
+        },
+        feb: {
+          rice: { received: 0, closing: 62.1 }, moong_dal: { received: 0, closing: 2.38 }, tur_dal: { received: 0, closing: 1.7 },
+          masoor_dal: { received: 0, closing: 0.14 }, matki: { received: 0, closing: 0.0 }, moong: { received: 0, closing: 2.36 },
+          chawli: { received: 0, closing: 2.82 }, harbhara: { received: 0, closing: 0.23 }, vatana: { received: 0, closing: -0.4 },
+          jire: { received: 0, closing: 1.187 }, mohari: { received: 0, closing: 2.148 }, halad: { received: 0, closing: 1.066 },
+          mirchi: { received: 0, closing: 1.592 }, oil: { received: 0, closing: 0.055 }, salt: { received: 0, closing: 2.33 },
+          onion_garlic: { received: 0, closing: 1.971 }, soyavadi: { received: 0, closing: 0.01 }
+        },
+        mar: {
+          rice: { received: 100, closing: 134.1 }, moong_dal: { received: 0, closing: 0 }, tur_dal: { received: 0, closing: 0.58 },
+          masoor_dal: { received: 5, closing: 5.14 }, matki: { received: 5, closing: 5.0 }, moong: { received: 0, closing: 0 },
+          chawli: { received: 5, closing: 6.7 }, harbhara: { received: 5, closing: 4.95 }, vatana: { received: 5, closing: 4.6 },
+          jire: { received: 1, closing: 2.159 }, mohari: { received: 1, closing: 3.092 }, halad: { received: 1, closing: 2.01 },
+          mirchi: { received: 1, closing: 2.452 }, oil: { received: 3, closing: 1.655 }, salt: { received: 1, closing: 3.26 },
+          onion_garlic: { received: 1, closing: 0.831 }, soyavadi: { received: 1, closing: 1.01 }
+        }
+      }
+    };
+
+    createApp({
+      setup() {
+        const navTabs = [
+          { id: 'summary', label: 'वार्षिक गोषवारा (Master Sheet)' },
+          { id: 'monthly', label: 'महिनानिहाय धान्य नोंद' },
+          { id: 'metrics', label: 'पटसंख्या व ताट संख्या' },
+          { id: 'opening', label: '१ एप्रिल शिल्लक' },
+          { id: 'items', label: 'धान्य सूची व्यवस्थापन' }
+        ];
+
+        const activeTab = ref('summary');
+        const selectedMonth = ref('apr');
+        const toast = ref(null);
+
+        const showToast = (message, type = 'success') => {
+          toast.value = { message, type };
+          setTimeout(() => { toast.value = null; }, 3500);
+        };
+
+        // School Profile
+        const schoolProfile = ref({
+          schoolName: 'रा जि प शाळा मोहपाडा',
+          cluster: 'मोहपाडा',
+          taluka: 'खालापूर',
+          district: 'रायगड',
+          udiseCode: '',
+          fuelRate: 2.59
+        });
+
+        // Multi-Year
+        const availableYears = ref(['2024-25', '2025-26', '2026-27']);
+        const activeYear = ref('2025-26');
+        const showAddYearModal = ref(false);
+        const newYearInput = ref('2026-27');
+        const carryForwardBalance = ref(true);
+        const showSchoolModal = ref(false);
+
+        // Foodgrain Items
+        const items = ref([...DEFAULT_ITEMS]);
+        const newItemName = ref('');
+        const newItemUnit = ref('कि.ग्रॅ.');
+
+        // All Years Data
+        const allYearsData = ref({
+          '2025-26': JSON.parse(JSON.stringify(DEMO_DATA_2025_26))
+        });
+
+        // LocalStorage Sync
+        onMounted(() => {
+          try {
+            const savedProfile = localStorage.getItem('mdm_sp_v2');
+            if (savedProfile) schoolProfile.value = JSON.parse(savedProfile);
+            const savedYears = localStorage.getItem('mdm_ay_v2');
+            if (savedYears) availableYears.value = JSON.parse(savedYears);
+            const savedActive = localStorage.getItem('mdm_cur_v2');
+            if (savedActive) activeYear.value = savedActive;
+            const savedItems = localStorage.getItem('mdm_it_v2');
+            if (savedItems) items.value = JSON.parse(savedItems);
+            const savedData = localStorage.getItem('mdm_data_v2');
+            if (savedData) allYearsData.value = JSON.parse(savedData);
+          } catch (e) {
+            console.error('Storage parse error', e);
+          }
+        });
+
+        watch([schoolProfile, availableYears, activeYear, items, allYearsData], () => {
+          try {
+            localStorage.setItem('mdm_sp_v2', JSON.stringify(schoolProfile.value));
+            localStorage.setItem('mdm_ay_v2', JSON.stringify(availableYears.value));
+            localStorage.setItem('mdm_cur_v2', activeYear.value);
+            localStorage.setItem('mdm_it_v2', JSON.stringify(items.value));
+            localStorage.setItem('mdm_data_v2', JSON.stringify(allYearsData.value));
+          } catch (e) {
+            console.error('Storage save error', e);
+          }
+        }, { deep: true });
+
+        // Ensure current year data exists
+        const currentYearData = computed(() => {
+          if (!allYearsData.value[activeYear.value]) {
+            allYearsData.value[activeYear.value] = {
+              openingBalance: {},
+              metrics: {},
+              entries: {}
+            };
+          }
+          const yd = allYearsData.value[activeYear.value];
+          if (!yd.openingBalance) yd.openingBalance = {};
+          if (!yd.metrics) yd.metrics = {};
+          if (!yd.entries) yd.entries = {};
+          MONTHS.forEach(m => {
+            if (!yd.metrics[m.key]) yd.metrics[m.key] = { roll: 0, workingDays: 0, mealsServed: 0 };
+            if (!yd.entries[m.key]) yd.entries[m.key] = {};
+          });
+          return yd;
+        });
+
+        const getMetric = (mKey) => {
+          if (!currentYearData.value.metrics[mKey]) {
+            currentYearData.value.metrics[mKey] = { roll: 0, workingDays: 0, mealsServed: 0 };
+          }
+          return currentYearData.value.metrics[mKey];
+        };
+
+        const getEntry = (mKey, itemId) => {
+          if (!currentYearData.value.entries[mKey]) currentYearData.value.entries[mKey] = {};
+          if (!currentYearData.value.entries[mKey][itemId]) {
+            currentYearData.value.entries[mKey][itemId] = { received: 0, closing: 0 };
+          }
+          return currentYearData.value.entries[mKey][itemId];
+        };
+
+        // Calculations Engine
+        const round = (val, dec = 3) => {
+          if (val === null || val === undefined || isNaN(val)) return 0;
+          const factor = Math.pow(10, dec);
+          return Math.round((Number(val) + Number.EPSILON) * factor) / factor;
+        };
+
+        const formatNum = (val, dec = 2) => {
+          if (val === null || val === undefined || isNaN(val)) return '0';
+          const n = Number(val);
+          if (Number.isInteger(n)) return n.toString();
+          return parseFloat(n.toFixed(dec)).toString();
+        };
+
+        const getItemChain = (itemId) => {
+          const yd = currentYearData.value;
+          const initialOpening = round(yd.openingBalance[itemId] || 0);
+          let currentOpening = initialOpening;
+          const monthsData = {};
+          let totalRec = 0;
+          let totalCook = 0;
+
+          MONTHS.forEach(m => {
+            const entry = yd.entries[m.key]?.[itemId] || {};
+            const rec = Number(entry.received || 0);
+            const close = entry.closing !== undefined && entry.closing !== '' ? Number(entry.closing) : currentOpening;
+            
+            // Core Formula: (Opening + Received) - Closing = Cooked
+            const cooked = round((currentOpening + rec) - close);
+
+            monthsData[m.key] = {
+              opening: round(currentOpening),
+              received: round(rec),
+              closing: round(close),
+              cooked: round(cooked)
+            };
+
+            totalRec += rec;
+            totalCook += cooked;
+            currentOpening = close;
+          });
+
+          return {
+            initialOpening: round(initialOpening),
+            months: monthsData,
+            totalReceived: round(totalRec),
+            totalCooked: round(totalCook),
+            finalClosing: round(currentOpening)
+          };
+        };
+
+        const getItemMonthOpening = (itemId, mKey) => {
+          return getItemChain(itemId).months[mKey]?.opening ?? 0;
+        };
+
+        const getCookedVal = (itemId, mKey) => {
+          return getItemChain(itemId).months[mKey]?.cooked ?? 0;
+        };
+
+        const getFuelCost = (mKey) => {
+          const rate = Number(schoolProfile.value.fuelRate || 2.59);
+          const plates = Number(currentYearData.value.metrics[mKey]?.mealsServed || 0);
+          return round(plates * rate, 2);
+        };
+
+        const metricsSummary = computed(() => {
+          let days = 0;
+          let plates = 0;
+          const rate = Number(schoolProfile.value.fuelRate || 2.59);
+
+          MONTHS.forEach(m => {
+            const met = currentYearData.value.metrics[m.key] || {};
+            days += Number(met.workingDays || 0);
+            plates += Number(met.mealsServed || 0);
+          });
+
+          return {
+            totalWorkingDays: days,
+            totalMealsServed: plates,
+            totalFuelCost: round(plates * rate, 2)
+          };
+        });
+
+        const startYearShort = computed(() => {
+          const p = activeYear.value.split('-')[0] || '2025';
+          return p.slice(-2);
+        });
+
+        const getMonthYear = (mKey) => {
+          const [y1, y2] = activeYear.value.split('-');
+          const endY = y2 ? (y2.length === 2 ? '20' + y2 : y2) : '2026';
+          const startY = y1 || '2025';
+          return (mKey === 'jan' || mKey === 'feb' || mKey === 'mar') ? endY : startY;
+        };
+
+        const getMonthName = (mKey) => {
+          return MONTHS.find(m => m.key === mKey)?.name || '';
+        };
+
+        const isFirstMonth = computed(() => selectedMonth.value === 'apr');
+        const isLastMonth = computed(() => selectedMonth.value === 'mar');
+
+        const prevMonth = () => {
+          const idx = MONTHS.findIndex(m => m.key === selectedMonth.value);
+          if (idx > 0) selectedMonth.value = MONTHS[idx - 1].key;
+        };
+
+        const nextMonth = () => {
+          const idx = MONTHS.findIndex(m => m.key === selectedMonth.value);
+          if (idx < MONTHS.length - 1) {
+            selectedMonth.value = MONTHS[idx + 1].key;
+          } else {
+            activeTab.value = 'summary';
+          }
+        };
+
+        // Multi-Year handlers
+        const openAddYearModal = () => {
+          const parts = activeYear.value.split('-');
+          const y1 = parseInt(parts[0], 10);
+          const y2 = parseInt(parts[1], 10);
+          if (!isNaN(y1) && !isNaN(y2)) {
+            newYearInput.value = `${y1 + 1}-${((y2 + 1) % 100).toString().padStart(2, '0')}`;
+          } else {
+            newYearInput.value = '2026-27';
+          }
+          showAddYearModal.value = true;
+        };
+
+        const confirmAddYear = () => {
+          const ny = newYearInput.value.trim();
+          if (!ny) return;
+          if (availableYears.value.includes(ny)) {
+            alert('हे वर्ष आधीच अस्तित्वात आहे.');
+            return;
+          }
+
+          let carriedOpening = {};
+          if (carryForwardBalance.value) {
+            items.value.forEach(it => {
+              carriedOpening[it.id] = getItemChain(it.id).finalClosing;
+            });
+          }
+
+          availableYears.value.push(ny);
+          allYearsData.value[ny] = {
+            openingBalance: carriedOpening,
+            metrics: {},
+            entries: {}
+          };
+          activeYear.value = ny;
+          showAddYearModal.value = false;
+          activeTab.value = 'opening';
+          showToast(`नवीन वर्ष ${ny} जोडले गेले! ${carryForwardBalance.value ? 'मागील वर्षाची शिल्लक पुढे आणली आहे.' : ''}`);
+        };
+
+        // School Profile
+        const saveSchoolProfile = () => {
+          showSchoolModal.value = false;
+          showToast('शाळेची माहिती जतन झाली.');
+        };
+
+        // Grain Items
+        const addItem = () => {
+          if (!newItemName.value.trim()) return;
+          const id = 'custom_' + Date.now();
+          items.value.push({ id, name: newItemName.value.trim(), unit: newItemUnit.value });
+          newItemName.value = '';
+          showToast('नवीन घटक जोडला गेला.');
+        };
+
+        const deleteItem = (id) => {
+          if (items.value.length <= 1) {
+            alert('किमान १ घटक असणे आवश्यक आहे.');
+            return;
+          }
+          if (confirm('हा घटक यादीतून काढायचा आहे का?')) {
+            items.value = items.value.filter(it => it.id !== id);
+            showToast('घटक काढला गेला.');
+          }
+        };
+
+        const resetDefaultItems = () => {
+          if (confirm('मूळ १७ धान्ये पूर्ववत करायची आहेत का?')) {
+            items.value = [...DEFAULT_ITEMS];
+            showToast('मूळ १७ धान्ये पूर्ववत केली.');
+          }
+        };
+
+        // Excel Export
+        const exportToExcel = () => {
+          try {
+            if (typeof XLSX === 'undefined') {
+              alert('Excel लायब्ररी लोड होत आहे. कृपया २ सेकंद थांबा.');
+              return;
+            }
+            const wb = XLSX.utils.book_new();
+            const schoolName = schoolProfile.value.schoolName || 'शाळा';
+            const yr = activeYear.value;
+
+            // Sheet 1: धान्य
+            const s1 = [];
+            s1.push([`${schoolName} ${yr} पोषण आहार उपयोगिता`]);
+            s1.push([]);
+
+            const r3 = ['तपशील', `मार्च ${startYearShort.value} अखेर शिल्लक`];
+            MONTHS.forEach(m => {
+              r3.push(`${m.name} ${getMonthYear(m.key)}`, '', '');
+            });
+            r3.push('एकूण', '', '');
+            s1.push(r3);
+
+            // Roll
+            const r4 = ['पटसंख्या', ''];
+            MONTHS.forEach(m => {
+              r4.push(currentYearData.value.metrics[m.key]?.roll || '', '', '');
+            });
+            r4.push(currentYearData.value.metrics['mar']?.roll || '', '', '');
+            s1.push(r4);
+
+            // Working Days
+            const r5 = ['कार्यदिवस', ''];
+            MONTHS.forEach(m => {
+              r5.push('', currentYearData.value.metrics[m.key]?.workingDays || 0, '');
+            });
+            r5.push('', metricsSummary.value.totalWorkingDays, '');
+            s1.push(r5);
+
+            // Plates
+            const r6 = ['ताटांची संख्या', ''];
+            MONTHS.forEach(m => {
+              r6.push('', currentYearData.value.metrics[m.key]?.mealsServed || 0, '');
+            });
+            r6.push('', metricsSummary.value.totalMealsServed, '');
+            s1.push(r6);
+
+            // Subheaders
+            const r7 = ['अ.क्र.', ''];
+            MONTHS.forEach(() => { r7.push('प्राप्त', 'शिजवलेला', 'शिल्लक'); });
+            r7.push('प्राप्त', 'शिजवलेला', 'शिल्लक');
+            s1.push(r7);
+
+            // Items
+            items.value.forEach(it => {
+              const ch = getItemChain(it.id);
+              const row = [it.name, ch.initialOpening];
+              MONTHS.forEach(m => {
+                const md = ch.months[m.key];
+                row.push(md.received, md.cooked, md.closing);
+              });
+              row.push(ch.totalReceived, ch.totalCooked, ch.finalClosing);
+              s1.push(row);
+            });
+
+            // Fuel
+            const rFuel = ['इंधनखर्च', ''];
+            MONTHS.forEach(m => {
+              rFuel.push(getFuelCost(m.key), '', '');
+            });
+            rFuel.push(metricsSummary.value.totalFuelCost, '', '');
+            s1.push(rFuel);
+
+            const ws1 = XLSX.utils.aoa_to_sheet(s1);
+            ws1['!cols'] = [{ wch: 18 }, { wch: 15 }];
+            for (let i = 0; i < MONTHS.length * 3 + 3; i++) ws1['!cols'].push({ wch: 10 });
+
+            // Merges for Month headers in row 3 (index 2)
+            const merges = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 15 } }];
+            let colIdx = 2;
+            MONTHS.forEach(() => {
+              merges.push({ s: { r: 2, c: colIdx }, e: { r: 2, c: colIdx + 2 } });
+              colIdx += 3;
+            });
+            merges.push({ s: { r: 2, c: colIdx }, e: { r: 2, c: colIdx + 2 } });
+            ws1['!merges'] = merges;
+
+            XLSX.utils.book_append_sheet(wb, ws1, 'धान्य');
+
+            // Sheet 2: रक्कम
+            const s2 = [
+              ['प्रधानमंत्री पोषण शक्ती निर्माण योजना उपयोगिता (अनुदान)'],
+              [schoolName],
+              [],
+              ['अ. क्र.', 'जमा', '', '', 'खर्च', '', ''],
+              ['दिनांक', 'तपशील', 'रक्कम', 'दिनांक', 'तपशील', 'रक्कम'],
+              [1, 'इंधनखर्च', metricsSummary.value.totalFuelCost, '', 'इंधनखर्च खर्च', metricsSummary.value.totalFuelCost],
+              [2, 'मानधन', 0, '', 'मानधन खर्च', 0],
+              [3, 'तेल खर्च', 0, '', 'तेल खर्च', 0],
+              [4, 'पूरक आहार', 0, '', 'पूरक आहार खर्च', 0],
+              [5, 'इतर', 0, '', 'इतर खर्च', 0],
+              ['एकूण', '', metricsSummary.value.totalFuelCost, 'एकूण', '', metricsSummary.value.totalFuelCost],
+              [],
+              ['गोषवारा'],
+              ['अ. क्र.', 'तपशील', 'मागील शिल्लक', 'जमा', 'खर्च', 'शिल्लक'],
+              [1, 'इंधनखर्च', 0, metricsSummary.value.totalFuelCost, metricsSummary.value.totalFuelCost, 0],
+              [2, 'मानधन', 0, 0, 0, 0],
+              [3, 'तेल खर्च', 0, 0, 0, 0],
+              [4, 'पूरक आहार', 0, 0, 0, 0],
+              [5, 'इतर', 0, 0, 0, 0],
+              ['एकूण', '', 0, metricsSummary.value.totalFuelCost, metricsSummary.value.totalFuelCost, 0]
+            ];
+            const ws2 = XLSX.utils.aoa_to_sheet(s2);
+            XLSX.utils.book_append_sheet(wb, ws2, 'रक्कम');
+
+            const fileName = `${schoolName.replace(/\s+/g, '_')}_पोषण_आहार_उपयोगिता_${yr}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            showToast(`'${fileName}' एक्सेल फाईल डाऊनलोड झाली!`);
+          } catch (e) {
+            console.error(e);
+            alert('एक्सेल डाऊनलोड करताना त्रुटी आली: ' + e.message);
+          }
+        };
+
+        // Excel Import
+        const handleImportExcel = (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            try {
+              const data = new Uint8Array(evt.target.result);
+              const wb = XLSX.read(data, { type: 'array' });
+              const sName = wb.SheetNames.find(s => s.includes('धान्य')) || wb.SheetNames[0];
+              const ws = wb.Sheets[sName];
+              const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+              if (rows.length < 8) {
+                alert('एक्सेल शीटमध्ये पुरेसा डेटा नाही.');
+                return;
+              }
+
+              // Title
+              const title = String(rows[0]?.[0] || '');
+              if (title) {
+                const clean = title.replace(/पोषण आहार.*$/i, '').trim();
+                if (clean) schoolProfile.value.schoolName = clean;
+              }
+
+              // Metrics rows 4, 5, 6
+              const rRoll = rows[3] || [];
+              const rDays = rows[4] || [];
+              const rMeals = rows[5] || [];
+
+              const mColMap = [
+                { k: 'apr', r: 2, d: 3, m: 3, rec: 2, cls: 4 },
+                { k: 'jun', r: 5, d: 6, m: 6, rec: 5, cls: 7 },
+                { k: 'jul', r: 8, d: 9, m: 9, rec: 8, cls: 10 },
+                { k: 'aug', r: 11, d: 12, m: 12, rec: 11, cls: 13 },
+                { k: 'sep', r: 14, d: 15, m: 15, rec: 14, cls: 16 },
+                { k: 'oct', r: 17, d: 18, m: 18, rec: 17, cls: 19 },
+                { k: 'nov', r: 20, d: 21, m: 21, rec: 20, cls: 22 },
+                { k: 'dec', r: 23, d: 24, m: 24, rec: 23, cls: 25 },
+                { k: 'jan', r: 26, d: 27, m: 27, rec: 26, cls: 28 },
+                { k: 'feb', r: 29, d: 30, m: 30, rec: 29, cls: 31 },
+                { k: 'mar', r: 32, d: 33, m: 33, rec: 32, cls: 34 }
+              ];
+
+              mColMap.forEach(col => {
+                currentYearData.value.metrics[col.k] = {
+                  roll: Number(rRoll[col.r] || rRoll[col.r + 1] || 0),
+                  workingDays: Number(rDays[col.d] || 0),
+                  mealsServed: Number(rMeals[col.m] || 0)
+                };
+              });
+
+              // Grain rows
+              for (let r = 7; r < rows.length; r++) {
+                const row = rows[r];
+                const iName = String(row[0] || '').trim();
+                if (!iName || iName === 'इंधनखर्च' || iName === 'एकूण') continue;
+
+                let matched = items.value.find(it => it.name === iName);
+                if (!matched) {
+                  const newId = 'custom_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5);
+                  matched = { id: newId, name: iName, unit: 'कि.ग्रॅ.' };
+                  items.value.push(matched);
+                }
+
+                currentYearData.value.openingBalance[matched.id] = Number(row[1] || 0);
+
+                mColMap.forEach(col => {
+                  if (!currentYearData.value.entries[col.k]) currentYearData.value.entries[col.k] = {};
+                  currentYearData.value.entries[col.k][matched.id] = {
+                    received: Number(row[col.rec] || 0),
+                    closing: Number(row[col.cls] || 0)
+                  };
+                });
+              }
+
+              activeTab.value = 'summary';
+              showToast(`'${file.name}' फाईलमधून डेटा यशस्वीरित्या लोड झाला!`);
+            } catch (err) {
+              alert('इम्पोर्ट करताना त्रुटी: ' + err.message);
+            }
+          };
+          reader.readAsArrayBuffer(file);
+          e.target.value = '';
+        };
+
+        const printPage = () => {
+          window.print();
+        };
+
+        return {
+          navTabs,
+          activeTab,
+          selectedMonth,
+          toast,
+          schoolProfile,
+          availableYears,
+          activeYear,
+          showAddYearModal,
+          newYearInput,
+          carryForwardBalance,
+          showSchoolModal,
+          items,
+          newItemName,
+          newItemUnit,
+          MONTHS,
+          currentYearData,
+          getMetric,
+          getEntry,
+          getItemChain,
+          getItemMonthOpening,
+          getCookedVal,
+          getFuelCost,
+          metricsSummary,
+          startYearShort,
+          getMonthYear,
+          getMonthName,
+          isFirstMonth,
+          isLastMonth,
+          prevMonth,
+          nextMonth,
+          openAddYearModal,
+          confirmAddYear,
+          saveSchoolProfile,
+          addItem,
+          deleteItem,
+          resetDefaultItems,
+          exportToExcel,
+          handleImportExcel,
+          printPage,
+          formatNum
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
 </html>
