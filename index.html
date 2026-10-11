@@ -61,11 +61,14 @@
       <span>{{ toast.message }}</span>
     </div>
 
+    <!-- Hidden File Input for Excel / Backup File Import -->
+    <input type="file" ref="fileInput" accept=".xlsx, .xls, .json" @change="handleFileImport" class="hidden">
+
     <!-- Header & Navbar (Mobile Optimized) -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs no-print">
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         
-        <!-- Top bar: Logo, School Name, Year, Download -->
+        <!-- Top bar: Logo, School Name, Year, Import/Export Buttons -->
         <div class="flex items-center justify-between py-2 sm:py-3 gap-2">
           
           <!-- Logo & School Name -->
@@ -86,8 +89,9 @@
             </div>
           </div>
 
-          <!-- Year Selector & Download Action -->
+          <!-- Actions: Year Selector, Import & Download -->
           <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            
             <!-- Year Pill -->
             <div class="flex items-center bg-slate-100 rounded-xl px-1.5 py-1 border border-slate-200">
               <select v-model="activeYear" class="bg-transparent text-xs sm:text-sm font-bold text-slate-800 outline-none cursor-pointer">
@@ -100,7 +104,14 @@
               </button>
             </div>
 
-            <!-- Main Excel Download Button -->
+            <!-- EXCEL IMPORT BUTTON (Prominent on Header for Easy Device Switching) -->
+            <button @click="triggerFileInput" class="flex items-center gap-1 text-xs font-bold px-2.5 sm:px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl border border-blue-200 transition active:scale-95 cursor-pointer shadow-2xs"
+                    title="दुसऱ्या मोबाईल/कम्प्युटरवरून एक्सेल किंवा बॅकअप फाईल लोड करा">
+              <span>📥</span>
+              <span class="hidden sm:inline">Excel</span> इम्पोर्ट
+            </button>
+
+            <!-- EXCEL DOWNLOAD BUTTON -->
             <button @click="exportToExcel" class="flex items-center gap-1 text-xs font-bold px-3 py-2 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white rounded-xl shadow-md shadow-emerald-700/20 transition cursor-pointer">
               <span>📗</span>
               <span class="hidden sm:inline">Excel</span> डाऊनलोड
@@ -262,7 +273,7 @@
 
             </div>
 
-            <!-- শिजवलेले (Auto Calculated Result Pill) -->
+            <!-- शिजवलेले (Auto Calculated Result Pill) -->
             <div class="flex items-center justify-between pt-1 text-xs">
               <span class="font-bold text-slate-600">
                 🍳 शिजवलेले धान्य (खर्च):
@@ -420,9 +431,33 @@
       </section>
 
       <!-- ============================================================== -->
-      <!-- TAB 3: वार्षिक गोषवारा (MASTER SHEET & EXCEL DOWNLOAD)        -->
+      <!-- TAB 3: वार्षिक गोषवारा (MASTER SHEET, BACKUP & DEVICE SYNC)    -->
       <!-- ============================================================== -->
       <section v-if="activeTab === 'summary'" class="space-y-4 sm:space-y-6">
+
+        <!-- Device Transfer & Backup Card (Highlighting Import/Export for multiple devices) -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 sm:p-5 shadow-2xs no-print">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-blue-950 flex items-center gap-2">
+                <span>🔄</span> डिव्हाइस ट्रान्सफर व बॅकअप (Device Transfer & Data Restore)
+              </h3>
+              <p class="text-xs text-blue-800 mt-0.5">
+                एका मोबाईलवरून दुसऱ्या मोबाईलवर किंवा कॉम्प्युटरवर शिफ्ट होताना डेटा सुरक्षितपणे ट्रान्सफर करा.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button @click="triggerFileInput" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 active:scale-95 transition">
+                <span>📥</span> फाईल इम्पोर्ट करा (.xlsx / .json)
+              </button>
+              <button @click="exportBackupJson" class="px-3 py-2 bg-white hover:bg-slate-100 text-blue-900 text-xs font-bold rounded-xl border border-blue-300 shadow-2xs flex items-center gap-1.5 active:scale-95 transition">
+                <span>💾</span> संपूर्ण बॅकअप सेव्ह करा
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Sheet Controls -->
         <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 no-print">
           <div>
             <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -436,7 +471,7 @@
             <button @click="printPage" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300">
               🖨️ प्रिंट
             </button>
-            <button @click="exportToExcel" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5">
+            <button @click="exportToExcel" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer">
               <span>📗</span> Excel डाऊनलोड (.xlsx)
             </button>
           </div>
@@ -779,7 +814,7 @@
       { key: 'mar', name: 'मार्च' }
     ];
 
-    // ALL ZERO BLANK DATASET (Clean fresh slate as requested)
+    // ALL ZERO BLANK DATASET (Clean fresh slate)
     const createBlankYearData = () => {
       const opening = {};
       const metrics = {};
@@ -799,6 +834,8 @@
 
     createApp({
       setup() {
+        const fileInput = ref(null);
+
         const navTabs = [
           { id: 'monthly', label: 'महिनानिहाय नोंद', icon: '📝' },
           { id: 'opening', label: '१ एप्रिल शिल्लक', icon: '📦' },
@@ -812,7 +849,7 @@
 
         const showToast = (message, type = 'success') => {
           toast.value = { message, type };
-          setTimeout(() => { toast.value = null; }, 3500);
+          setTimeout(() => { toast.value = null; }, 4000);
         };
 
         // School Profile
@@ -838,7 +875,7 @@
         const newItemName = ref('');
         const newItemUnit = ref('कि.ग्रॅ.');
 
-        // All Years Data (Clean all-zero default!)
+        // All Years Data
         const allYearsData = ref({
           '2024-25': createBlankYearData(),
           '2025-26': createBlankYearData(),
@@ -1103,6 +1140,152 @@
           }
         };
 
+        // Trigger file input dialog
+        const triggerFileInput = () => {
+          fileInput.value.click();
+        };
+
+        // Universal File Import (Handles .xlsx, .xls, and .json backup files)
+        const handleFileImport = (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+
+          const fileName = file.name.toLowerCase();
+
+          // 1. JSON Backup Restore
+          if (fileName.endsWith('.json')) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+              try {
+                const parsed = JSON.parse(evt.target.result);
+                if (parsed.schoolProfile) schoolProfile.value = parsed.schoolProfile;
+                if (parsed.availableYears) availableYears.value = parsed.availableYears;
+                if (parsed.activeYear) activeYear.value = parsed.activeYear;
+                if (parsed.items) items.value = parsed.items;
+                if (parsed.allYearsData) allYearsData.value = parsed.allYearsData;
+                showToast(`'${file.name}' बॅकअप यशस्वीरित्या रिस्टोअर झाला!`);
+              } catch (err) {
+                alert('बॅकअप फाईल वाचताना त्रुटी: ' + err.message);
+              }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+            return;
+          }
+
+          // 2. Excel Spreadsheet Import (.xlsx, .xls)
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            try {
+              if (typeof XLSX === 'undefined') {
+                alert('Excel लायब्ररी लोड होत आहे. कृपया पुन्हा प्रयत्न करा.');
+                return;
+              }
+              const data = new Uint8Array(evt.target.result);
+              const wb = XLSX.read(data, { type: 'array' });
+              const sName = wb.SheetNames.find(s => s.includes('धान्य')) || wb.SheetNames[0];
+              const ws = wb.Sheets[sName];
+              const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+              if (rows.length < 8) {
+                alert('एक्सेल शीटमध्ये पुरेसा डेटा आढळला नाही.');
+                return;
+              }
+
+              // Extract School Title & Academic Year
+              const title = String(rows[0]?.[0] || '');
+              if (title) {
+                const yearMatch = title.match(/20\d\d-\d\d/);
+                if (yearMatch) {
+                  const importedYear = yearMatch[0];
+                  if (!availableYears.value.includes(importedYear)) {
+                    availableYears.value.push(importedYear);
+                  }
+                  activeYear.value = importedYear;
+                }
+                const cleanSchool = title.replace(/20\d\d-\d\d/g, '').replace(/पोषण आहार.*$/i, '').trim();
+                if (cleanSchool) schoolProfile.value.schoolName = cleanSchool;
+              }
+
+              // Metrics rows 4, 5, 6 (index 3, 4, 5)
+              const rRoll = rows[3] || [];
+              const rDays = rows[4] || [];
+              const rMeals = rows[5] || [];
+
+              const mColMap = [
+                { k: 'apr', r: 2, d: 3, m: 3, rec: 2, cls: 4 },
+                { k: 'jun', r: 5, d: 6, m: 6, rec: 5, cls: 7 },
+                { k: 'jul', r: 8, d: 9, m: 9, rec: 8, cls: 10 },
+                { k: 'aug', r: 11, d: 12, m: 12, rec: 11, cls: 13 },
+                { k: 'sep', r: 14, d: 15, m: 15, rec: 14, cls: 16 },
+                { k: 'oct', r: 17, d: 18, m: 18, rec: 17, cls: 19 },
+                { k: 'nov', r: 20, d: 21, m: 21, rec: 20, cls: 22 },
+                { k: 'dec', r: 23, d: 24, m: 24, rec: 23, cls: 25 },
+                { k: 'jan', r: 26, d: 27, m: 27, rec: 26, cls: 28 },
+                { k: 'feb', r: 29, d: 30, m: 30, rec: 29, cls: 31 },
+                { k: 'mar', r: 32, d: 33, m: 33, rec: 32, cls: 34 }
+              ];
+
+              mColMap.forEach(col => {
+                currentYearData.value.metrics[col.k] = {
+                  roll: Number(rRoll[col.r] || rRoll[col.r + 1] || 0),
+                  workingDays: Number(rDays[col.d] || 0),
+                  mealsServed: Number(rMeals[col.m] || 0)
+                };
+              });
+
+              // Grain rows (row 7 to end)
+              for (let r = 7; r < rows.length; r++) {
+                const row = rows[r];
+                const iName = String(row[0] || '').trim();
+                if (!iName || iName === 'इंधनखर्च' || iName === 'एकूण') continue;
+
+                let matched = items.value.find(it => it.name === iName);
+                if (!matched) {
+                  const newId = 'custom_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5);
+                  matched = { id: newId, name: iName, unit: 'कि.ग्रॅ.' };
+                  items.value.push(matched);
+                }
+
+                currentYearData.value.openingBalance[matched.id] = Number(row[1] || 0);
+
+                mColMap.forEach(col => {
+                  if (!currentYearData.value.entries[col.k]) currentYearData.value.entries[col.k] = {};
+                  currentYearData.value.entries[col.k][matched.id] = {
+                    received: Number(row[col.rec] || 0),
+                    closing: Number(row[col.cls] || 0)
+                  };
+                });
+              }
+
+              activeTab.value = 'monthly';
+              showToast(`'${file.name}' एक्सेल फाईल यशस्वीरित्या लोड झाली!`);
+            } catch (err) {
+              alert('एक्सेल इम्पोर्ट करताना त्रुटी: ' + err.message);
+            }
+          };
+          reader.readAsArrayBuffer(file);
+          e.target.value = '';
+        };
+
+        // Export Backup JSON (For 1-click device to device transfer via WhatsApp/Drive)
+        const exportBackupJson = () => {
+          const payload = {
+            exportDate: new Date().toISOString(),
+            schoolProfile: schoolProfile.value,
+            availableYears: availableYears.value,
+            activeYear: activeYear.value,
+            items: items.value,
+            allYearsData: allYearsData.value
+          };
+          const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload));
+          const dlAnchor = document.createElement('a');
+          dlAnchor.setAttribute('href', dataStr);
+          dlAnchor.setAttribute('download', `पोषण_आहार_बॅकअप_${activeYear.value}.json`);
+          dlAnchor.click();
+          showToast('संपूर्ण बॅकअप फाईल डाऊनलोड झाली!');
+        };
+
         // Excel Export
         const exportToExcel = () => {
           try {
@@ -1231,6 +1414,10 @@
         };
 
         return {
+          fileInput,
+          triggerFileInput,
+          handleFileImport,
+          exportBackupJson,
           navTabs,
           activeTab,
           selectedMonth,
